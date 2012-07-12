@@ -10,10 +10,10 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 ***************************************************************************/
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.Shell;
 using VSLangProj80;
 
@@ -21,7 +21,7 @@ namespace CustomToolkit
 {
     /// <summary>
     /// Creates HTML from Markdown deriving the output file extension from the input filename
-    /// Using the following pattern: filename.[required_extension]_md
+    /// or using the FileNameSpace property if no inline extension is provided
     /// </summary>
     [ComVisible(true)]
     [Guid("a6c15c51-199f-4f07-aba5-3c0827e951a3")]
@@ -40,13 +40,14 @@ namespace CustomToolkit
         internal static string name = "Markdown";
 #pragma warning restore 0414
 
+        private string DefaultExtension = string.Empty;
         /// <summary>
         /// Returns the extension for the generated file
         /// </summary>
         /// <returns></returns>
         protected override string GetDefaultExtension()
         {
-            return string.Empty;
+            return DefaultExtension;
         }
 
         /// <summary>
@@ -56,27 +57,27 @@ namespace CustomToolkit
         /// <returns>Generated file as a byte array</returns>
         protected override byte[] GenerateCode(string inputFileContent)
         {
-
-            var mdRegex = new System.Text.RegularExpressions.Regex(@"(\.\w+)\.(?:md|markdown)$");
-            var matches = mdRegex.Match(Path.GetFileName(InputFilePath));
-
-            if (matches.Groups.Count > 1)
-            {
-                try
+            try
+            {               
+                //If the input file doesn't contain an inline output extension then use the file namespace,
+                if (new Regex(@"(\.\w+)\" + Path.GetExtension(InputFilePath))
+                    .Match(Path.GetFileName(InputFilePath)).Groups.Count == 1)
                 {
-                    var input = File.ReadAllText(InputFilePath);
-                    var md = new MarkdownSharp.Markdown();
-                    var output = md.Transform(input);
-                    return ConvertToBytes(output);
+                    DefaultExtension = "." + this.FileNameSpace;
                 }
-                catch (Exception exception)
+                else //leave the default extension blank to use the inline extension
                 {
-                    GeneratorError(0, exception.Message, 0, 0);
+                    DefaultExtension = string.Empty;
                 }
+
+                var input = File.ReadAllText(InputFilePath);
+                var md = new MarkdownSharp.Markdown();
+                var output = md.Transform(input);
+                return ConvertToBytes(output);
             }
-            else
+            catch (Exception exception)
             {
-                GeneratorError(0, "The Markdown tool is only for Markdown files with the following filename format: filename.[required_extension].md or filename.[required_extension].markdown", 0, 0);
+                GeneratorError(0, exception.Message, 0, 0);
             }
 
             return null;
