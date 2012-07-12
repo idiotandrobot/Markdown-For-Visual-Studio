@@ -15,27 +15,45 @@ You can create a markdown file directly in Visual Studio and this tool will outp
 How To
 ------
 
+###Enabling the tool
+
+Set the "Custom Tool" property on each of your markdown files to "Markdown".
+
+The HTML output will now be automatically created every time you save the markdown source file.
+
 ###Naming Convention for your markdown files
 
-So the tool can infer what file extension you would like to create you should use the following filename pattern:
+The tool can infer the file extension to output using an inline value:
 
 	filename.[required_extension].md or filename.[required_extension].markdown
 
-examples:
+####Examples
 
-	test1.html.md
-	test1.cshtml.md
+  `test1.html.md` -> `test1.html`  
+  `test1.cshtml.md` -> `test1.cshtml`  
+  `test1.html.markdown` -> `test1.html`  
    
-produces:
+or alternatively you can use the Custom Tool Namespace property on the Markdown file
 
-	test1.html
-	test1.cshtml
+####Examples
 
-###Enabling the tool
+**Custom Tool Namespace**: html
 
-Set the "CustomTool" property on each of your markdown files to "Markdown".
+  `test1.md` -> `test1.html`  
+  `test1.markdown` -> `test1.html`  
+  `test1.txt` -> `test1.html`  
 
-The HTML output will now be automatically created every time you save the markdown source file.
+####N.B.
+
+1. An inline value will override a namespace value.
+2. If a namespace value is not specified the Markdown file Project "Default namespace" property will be used.
+
+###Debugging the tool
+
+Requires [Visual Studio 2010 SDK](http://www.microsoft.com/en-gb/download/details.aspx?id=2680) (there is an [SP1](http://visualstudiogallery.msdn.microsoft.com/25622469-19d8-4959-8e5c-4025d1c9183d/) but it refused to install on my system).
+
+In the Project Debug tab set Start Action to "Start external program" and enter the path to the Visual Studio 2010 devenv.exe. 
+Set "Command line arguments" to '/rootsuffix Exp'.
 	
 Credits
 =======
